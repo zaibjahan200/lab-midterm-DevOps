@@ -20,22 +20,21 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Docker Image (includes training)') {
             steps {
-                sh "docker build -t ${IMAGE_NAME} ."
+                sh "docker build --no-cache -t ${IMAGE_NAME} ."
             }
         }
 
-        stage('Train Model (inside container)') {
-            steps {
-                sh "docker run --rm -v \$(pwd):/app ${IMAGE_NAME} python train.py"
-            }
-        }
-
-        stage('Restart API Container') {
+        stage('Stop Old Container') {
             steps {
                 sh "docker stop ${CONTAINER_NAME} || true"
                 sh "docker rm ${CONTAINER_NAME} || true"
+            }
+        }
+
+        stage('Run Container') {
+            steps {
                 sh "docker run -d -p 8000:8000 --name ${CONTAINER_NAME} ${IMAGE_NAME}"
             }
         }
@@ -50,10 +49,10 @@ pipeline {
 
     post {
         success {
-            echo "Deployment successful: API running on port 8000"
+            echo "SUCCESS: ML API deployed with trained model inside image"
         }
         failure {
-            echo "Pipeline failed - check logs"
+            echo "FAILED: check Docker build or app logs"
         }
     }
 }
