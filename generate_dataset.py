@@ -19,7 +19,7 @@ import os
 # LOAD CONFIG
 # =========================================================
 
-with open("configs/config.json") as f:
+with open("config.json") as f:
     config = json.load(f)
 
 student_id = config["student_id"]
